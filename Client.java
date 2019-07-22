@@ -1,111 +1,92 @@
-//Clientクラス
+import java.util.ArrayList;
+
 public class Client {
 	public static void main(String[] args) {
-		Koujyou koujyou1 = new TvKoujyou();
-		Koujyou koujyou2 = new RadioKoujyou();
-		Seihin[] array = new Seihin[3];
-		array[0] = koujyou1.create();
-		array[1] = koujyou2.create();
-		array[2] = koujyou1.create();
-		for (int i = 0; i < array.length; ++i) {
-			array[i].print();
+		Suuchi s = new Suuchi();
+		Observer o1 = new NishinHyouji();
+		Observer o2 = new JyuurokushinHyouji();
+
+		s.attach(o1);
+		s.attach(o2);
+		int i = 0;
+		while (i < 100) {
+			s.putValue(i);
+			i += (int) (Math.random() * 30) - 10;
 		}
 	}
 }
 
-//Creatorクラス
-abstract class Koujyou {
-	public final Seihin create() {
-		Seihin seihin = factoryMethod();
-		touroku(seihin);
-		return seihin;
+abstract class Subject {
+	public ArrayList<Observer> observers;
+
+	Subject() {
+		observers = new ArrayList<Observer>();
 	}
 
-	public abstract Seihin factoryMethod();
+	public void attach(Observer o) {
+		observers.add(o);
 
-	public abstract void touroku(Seihin s);
-}
-
-//ConcreteCreatorクラス
-class TvKoujyou extends Koujyou {
-	public Seihin factoryMethod() {
-		return new Television();
 	}
 
-	public void touroku(Seihin s) {
-		Television t = (Television) s;
-		t.numberring();
-		t.setDate(Date.today());
+	public void detach(Observer o) {
+		observers.remove(o);
+	}
+
+	public void tsuuchi() {
+		for (Observer observer : observers) {
+			observer.update(this);
+		}
 	}
 }
 
-//ConcreteCreatorクラス
-class RadioKoujyou extends Koujyou {
-	public Seihin factoryMethod() {
-		return new Radio();
+class Suuchi extends Subject {
+	int suuchiState;
+	int atai;
+
+	public int getState() {
+		return suuchiState;
 	}
 
-	public void touroku(Seihin s) {
-		Radio r = (Radio) s;
-		r.numberring();
-	}
-}
-
-//Product
-abstract class Seihin {
-	public abstract void print();
-}
-
-//ConcreteProduct
-class Television extends Seihin {
-	private int tvSerialNumber;
-	private String date;
-
-	public void numberring() {
-		tvSerialNumber = Counter.getTvNumber();
+	public void putValue(int atai) {
+		if (atai > this.atai) {
+			this.atai = atai;
+			this.tsuuchi();
+		} else { // 本来ここから3行は不要となる行です。
+			System.out.println("確認用メッセージ:更新してません");
+		}
 	}
 
-	public void setDate(String date) {
-		this.date = date;
-	}
-
-	public void print() {
-		System.out.println("このテレビに関する情報:");
-		System.out.println(" 製造番号:" + tvSerialNumber);
-		System.out.println(" 製造年月日:" + date);
+	public int getValue() {
+		return atai;
 	}
 }
 
-//ConcreteProduct
-class Radio extends Seihin {
-	private int radioSerialNumber;
+interface Observer {
+	public void update(Subject s);
+}
 
-	public void numberring() {
-		radioSerialNumber = Counter.getRadioNumber();
+class NishinHyouji implements Observer {
+	public void update(Subject s) {
+		print(((Suuchi) s).getValue());
 	}
 
-	public void print() {
-		System.out.println("このラジオに関する情報:");
-		System.out.println(" 製造番号:" + radioSerialNumber);
+	private void print(int n) {
+		System.out.println(n + "を2進数で表示します");
+		//
+		// ここに2進数表示処理を作成する
+		//
 	}
 }
 
-//その他のクラス群
-class Date {
-	public static String today() {
-		return "2004/01/20";
-	}
-}
-
-class Counter {
-	private static int tvNum = 100;
-	private static int radioNum = 76;
-
-	public static int getTvNumber() {
-		return tvNum++;
+class JyuurokushinHyouji implements Observer {
+	public void update(Subject s) {
+		print(((Suuchi) s).getValue());
 	}
 
-	public static int getRadioNumber() {
-		return radioNum++;
+	private void print(int n) {
+		System.out.println(n + "を 16 進数で表示します");
+		//
+		// ここに 16 進数表示処理を作成する
+		//
 	}
 }
